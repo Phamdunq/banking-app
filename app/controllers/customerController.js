@@ -1,6 +1,5 @@
 const Customer = require('../models/customer');
 const Account = require('../models/account')
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 // API xử lý đăng nhập
@@ -8,26 +7,35 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
+        // Tìm kiếm khách hàng dựa trên email
         const customer = await Customer.findOne({ email });
         if (!customer) {
             return res.status(400).json({ success: false, message: 'Email không tồn tại!' });
         }
 
-        // So sánh mật khẩu không mã hóa với mật khẩu đã mã hóa
-        const isMatch = await bcrypt.compare(password, customer.password);
-        if (!isMatch) {
+        // So sánh mật khẩu thường với mật khẩu lưu trong DB
+        if (password !== customer.password) {
             return res.status(400).json({ success: false, message: 'Sai mật khẩu!' });
         }
 
-        // Tạo token JWT
-        const token = jwt.sign({ customerId: customer._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        return res.json({ success: true, token });
+        // Chỉ trả về thông tin người dùng
+        return res.json({ success: true, customer: {
+            fullName: customer.fullName,
+            email: customer.email,
+            phoneNumber: customer.phoneNumber,
+            address: customer.address,
+            dateOfBirth: customer.dateOfBirth,
+            image: customer.image,
+            id: customer._id,
+        }});
         
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'Lỗi server!', error });
+        return res.status(500).json({ success: false, message: 'Lỗi server!' });
     }
 };
+
+
+
 
 // API xử lý đăng ký
 exports.register = async (req, res) => {
@@ -114,15 +122,12 @@ exports.createCustomer = async (req, res) => {
             });
         }
 
-        // Mã hóa mật khẩu trước khi lưu vào database
-        const hashedPassword = await bcrypt.hash(password, 10);
-
         // Tạo mới khách hàng
         const newCustomer = new Customer({
             fullName,
             email,
             phoneNumber,
-            password: hashedPassword,  // Lưu mật khẩu đã mã hóa
+            password,  // Lưu mật khẩu đã mã hóa
             address,
             dateOfBirth,
             image,  // Lưu đường dẫn hình ảnh (nếu có)
