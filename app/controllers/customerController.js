@@ -67,6 +67,33 @@ exports.register = async (req, res) => {
     }
 };
 
+const { DangKyNguoiDung } = require('../blockchain/registerUser'); // Nhập hàm đăng ký từ blockchain
+
+// Hàm xử lý đăng ký khách hàng
+exports.registerCustomer = async (req, res) => {
+    const { fullName, email, phoneNumber, dateOfBirth, password, address } = req.body;
+
+    try {
+        // Đăng ký người dùng lên blockchain
+        const userID = email; // Sử dụng email làm ID
+        const userIdentity = await DangKyNguoiDung(userID);
+        
+        // Lưu thông tin khách hàng vào database nếu cần
+
+        res.status(200).json({
+            success: true,
+            message: 'Customer registered successfully',
+            data: userIdentity,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Failed to register customer',
+            error: error.message,
+        });
+    }
+};
+
 // API phân trang cho khách hàng 
 exports.getCustomersWithPagination = async (req, res) => {
     const { current = 1, pageSize = 10 } = req.query; // Lấy số trang và số lượng từ query params
