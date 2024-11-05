@@ -15,7 +15,6 @@ async function enrollAdmin() {
     try {
         // Tải cấu hình mạng từ file
         const ccpPath = "/home/dunq/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json";
-        const ccpPath = path.resolve(__dirname, '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
         // Tạo một CA client mới để tương tác với CA
