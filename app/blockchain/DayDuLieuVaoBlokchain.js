@@ -14,7 +14,7 @@ async function pushDataToBlockchain(idSignature, signature, ) {
 
     const chaincode = await channel.getContract('fabcar');
 
-    await chaincode.submitTransaction('ThemSinhVien', MaSV, TenSV, NamSinh, Khoa);
+    await chaincode.submitTransaction('createCustomer', fullName, email, phoneNumber, password, address, dateOfBirth, image);
 
 }
 

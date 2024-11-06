@@ -1,7 +1,7 @@
 const { Wallets, Gateway } = require("fabric-network");
 const fs = require('fs');
-async function queryDataFromBlockchain(idSignature, signature, MaSV,) {
-    const ccpPath = '/home/tuan/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json';
+async function queryDataFromBlockchain(idSignature, signature, customerId,) {
+    const ccpPath = '/home/dunq/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json';
     const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
     const wallet = await Wallets.newInMemoryWallet();
@@ -14,7 +14,7 @@ async function queryDataFromBlockchain(idSignature, signature, MaSV,) {
 
     const chaincode = await channel.getContract('fabcar');
 
-    await chaincode.evaluateTransaction('TimSinhVienByMaSV', MaSV);
+    await chaincode.evaluateTransaction('getCustomer', customerId);
 
 
 }
