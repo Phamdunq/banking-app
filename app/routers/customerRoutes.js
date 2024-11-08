@@ -10,5 +10,6 @@ router.put('/customers/:id', customerController.updateCustomer);
 router.delete('/customers/:id', customerController.deleteCustomer);
 router.post('/login', customerController.login);
 router.post('/register', customerController.register);
+router.get('/search/customers', customerController.searchCustomers)
 
 module.exports = router;

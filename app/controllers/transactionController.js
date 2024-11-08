@@ -91,13 +91,12 @@ exports.getTransactionsWithPagination = async (req, res) => {
 //     }
 // };
 
-
 exports.createTransaction = async (req, res) => {
     try {
         const { accountId, transactionType, amount, currency, fromAccount, toAccount } = req.body;
 
-        // Tạo mới khách hàng
-        const newCustomer = new Customer({
+        // Tạo mới giao dịch
+        const newTransaction = new Transaction({
             accountId, 
             transactionType, 
             amount, 
@@ -107,12 +106,12 @@ exports.createTransaction = async (req, res) => {
         });
 
         // Lưu vào cơ sở dữ liệu
-        await newCustomer.save();
+        await newTransaction.save();
 
         res.status(201).json({
             success: true,
-            message: 'Tạo mới khách hàng thành công!',
-            customer: newCustomer
+            message: 'Tạo mới giao dịch thành công!',
+            transaction: newTransaction
         });
     } catch (error) {
         res.status(500).json({
@@ -121,6 +120,32 @@ exports.createTransaction = async (req, res) => {
             error: error.message
         });
     }
+};
+
+exports.deleteTransaction = async (req, res) => {
+    const { id } = req.params
+    try {
+        // Tìm và xóa khách hàng theo ID
+        const transaction = await Transaction.findByIdAndDelete(id);
+        if (!transaction) {
+            return res.status(404).json({
+                success: false,
+                message: 'giao dịch này không tồn tại!',
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Xóa giao dịch thành công!',
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi server!',
+            error: error.message,
+        });
+    }
+
 }
 
 

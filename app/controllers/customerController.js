@@ -227,3 +227,35 @@ exports.deleteCustomer = async (req, res) => {
         });
     }
 };
+
+// Controller tìm kiếm khách hàng theo tên và email
+exports.searchCustomers = async (req, res) => {
+    const { fullName, email } = req.body; // Lấy tên và email từ query params
+
+    try {
+        // Tạo điều kiện tìm kiếm động dựa trên các tham số được cung cấp
+        const searchCriteria = {};
+        if (fullName) {
+            // Sử dụng biểu thức chính quy để tìm kiếm gần đúng theo tên
+            searchCriteria.fullName = { $regex: fullName, $options: 'i' };
+        }
+        if (email) {
+            searchCriteria.email = email;
+        }
+
+        // Tìm kiếm khách hàng theo tiêu chí
+        const customers = await Customer.find(searchCriteria);
+
+        // Trả về danh sách khách hàng tìm thấy
+        res.status(200).json({
+            success: true,
+            customers
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi server!',
+            error: error.message
+        });
+    }
+};

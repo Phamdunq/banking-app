@@ -1,10 +1,9 @@
 const Account = require('../models/account'); // Đường dẫn tới model Account của bạn
-const Customer = require('../models/customer');
 
 // Thêm tài khoản mới cho khách hàng
 exports.createAccount = async (req, res) => {
     const { customerId, accountNumber, accountType, balance, currency } = req.body;
-  
+    
     try {
 
       // Kiểm tra số tài khoản đã tồn tại chưa
@@ -74,23 +73,44 @@ exports.getAccountsWithPagination = async (req, res) => {
     }
 };
 
-// Cập nhật thông tin tài khoản
+// Sửa dữ liệu tài khoản
 exports.updateAccount = async (req, res) => {
+  const { id } = req.params; // Lấy accountId từ params
+  const { accountNumber, accountType, balance, currency } = req.body;
+
   try {
-    const { id } = req.params;
-    const updateData = req.body;
+      // Tìm tài khoản theo ID
+      const account = await Account.findById(id);
+      if (!account) {
+          return res.status(404).json({
+              success: false,
+              message: 'Tài khoản không tồn tại!',
+          });
+      }
 
-    const updatedAccount = await Account.findByIdAndUpdate(id, updateData, { new: true });
+      // Cập nhật các trường
+      account.accountNumber = accountNumber || account.accountNumber;
+      account.accountType = accountType || account.accountType;
+      account.balance = balance !== undefined ? balance : account.balance;
+      account.currency = currency || account.currency;
 
-    if (!updatedAccount) {
-      return res.status(404).json({ message: "Không tìm thấy tài khoản" });
-    }
+      // Lưu các thay đổi vào cơ sở dữ liệu
+      await account.save();
 
-    res.json(updatedAccount);
+      res.status(200).json({
+          success: true,
+          message: 'Cập nhật thông tin tài khoản thành công!',
+          account,
+      });
   } catch (error) {
-    res.status(500).json({ message: "Lỗi khi cập nhật tài khoản", error: error.message });
+      res.status(500).json({
+          success: false,
+          message: 'Lỗi server!',
+          error: error.message,
+      });
   }
 };
+
 
 // Xóa tài khoản
 exports.deleteAccount = async (req, res) => {
