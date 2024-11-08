@@ -27,9 +27,9 @@ app.use(express.urlencoded({extended: true}))//Để sử lý dữ liệu URL-en
 app.use(cors({credentials: true, origin: "*"}))// Chấp thuận cors từ mọi URL
 
 // Khai báo routes
-app.use('/api', customerRoutes);
 app.use('/api', accountRoutes);
-app.use('/api/transactions', transactionRoutes);
+app.use('/api', customerRoutes);
+app.use('/api', transactionRoutes);
 
 app.get("/", (req, res, next) => {
   res.send("Home");

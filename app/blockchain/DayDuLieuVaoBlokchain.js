@@ -10,11 +10,11 @@ async function pushDataToBlockchain(idSignature, signature, ) {
     const gateway = new Gateway();
     await gateway.connect(ccp, {wallet, identity: idSignature, discovery: {enabled: true, asLocalhost: true}});
 
-    const channel = await gateway.getNetwork('mychannel');
+    const channel = await gateway.getNetwork('mychannel');  
 
     const chaincode = await channel.getContract('fabcar');
 
-    await chaincode.submitTransaction('ThemSinhVien', MaSV, TenSV, NamSinh, Khoa);
+    await chaincode.submitTransaction('createCustomer', fullName, email, phoneNumber, password, address, dateOfBirth, image);
 
 }
 

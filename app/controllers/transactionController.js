@@ -1,28 +1,130 @@
 const Transaction = require('../models/transaction');
+const Account = require('../models/account');
 
-exports.getAllTransactions = async (req, res) => {
+// Lấy danh sách giao dịch với phân trang
+exports.getTransactionsWithPagination = async (req, res) => {
+    const { current = 1, pageSize = 10 } = req.query; // Lấy số trang và kích thước trang từ query params
+
     try {
-        const transactions = await Transaction.find();
-        res.json(transactions);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+        // Chuyển đổi current và pageSize sang số nguyên
+        const currentPage = parseInt(current, 10);
+        const limit = parseInt(pageSize, 10);
+
+        // Tính số tài liệu cần bỏ qua
+        const skip = (currentPage - 1) * limit;
+
+        // Lấy danh sách giao dịch với phân trang
+        const transactions = await Transaction.find().skip(skip).limit(limit);
+
+        // Đếm tổng số giao dịch
+        const total = await Transaction.countDocuments();
+
+        res.status(200).json({
+            success: true,
+            total, // Tổng số giao dịch
+            current: currentPage, // Trang hiện tại
+            pageSize: limit, // Kích thước trang
+            transactions,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi server!',
+            error: error.message,
+        });
     }
 };
+
+// // Thêm mới giao dịch
+// exports.createTransaction = async (req, res) => {
+//     const { accountId, transactionType, amount, currency, fromAccount, toAccount } = req.body;
+
+//     try {
+//         // Kiểm tra xem tài khoản có tồn tại không
+//         const account = await Account.findById(accountId);
+//         if (!account) {
+//             return res.status(404).json({ success: false, message: "Tài khoản không tồn tại" });
+//         }
+
+//         // Kiểm tra loại giao dịch và số dư (nếu là rút tiền hoặc chuyển khoản)
+//         if (transactionType === 'Withdraw' || transactionType === 'Transfer') {
+//             if (account.balance < amount) {
+//                 return res.status(400).json({ success: false, message: "Số dư không đủ để thực hiện giao dịch" });
+//             }
+//         }
+
+//         // Tạo mới một giao dịch
+//         const newTransaction = new Transaction({
+//             accountId,
+//             transactionType,
+//             amount,
+//             currency: currency || 'VND', // Nếu không có loại tiền, mặc định là 'VND'
+//             fromAccount: transactionType === 'Transfer' ? fromAccount : null,
+//             toAccount: transactionType === 'Transfer' ? toAccount : null,
+//         });
+
+//         // Lưu giao dịch vào cơ sở dữ liệu
+//         await newTransaction.save();
+
+//         // Cập nhật số dư tài khoản sau giao dịch
+//         if (transactionType === 'Deposit') {
+//             account.balance += amount;
+//         } else if (transactionType === 'Withdraw') {
+//             account.balance -= amount;
+//         } else if (transactionType === 'Transfer') {
+//             account.balance -= amount;
+//         }
+//         await account.save();
+
+//         // Trả về thông tin giao dịch mới
+//         res.status(201).json({
+//             success: true,
+//             message: "Giao dịch thành công",
+//             transaction: newTransaction,
+//         });
+//     } catch (error) {
+//         res.status(500).json({
+//             success: false,
+//             message: "Lỗi khi thực hiện giao dịch",
+//             error: error.message,
+//         });
+//     }
+// };
+
 
 exports.createTransaction = async (req, res) => {
-    const transaction = new Transaction({
-        accountId: req.body.accountId,
-        transactionType: req.body.transactionType,
-        amount: req.body.amount,
-        currency: req.body.currency,
-        fromAccount: req.body.fromAccount,
-        toAccount: req.body.toAccount,
-    });
-
     try {
-        const newTransaction = await transaction.save();
-        res.status(201).json(newTransaction);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
+        const { accountId, transactionType, amount, currency, fromAccount, toAccount } = req.body;
+
+        // Tạo mới khách hàng
+        const newCustomer = new Customer({
+            accountId, 
+            transactionType, 
+            amount, 
+            currency, 
+            fromAccount, 
+            toAccount
+        });
+
+        // Lưu vào cơ sở dữ liệu
+        await newCustomer.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Tạo mới khách hàng thành công!',
+            customer: newCustomer
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi server!',
+            error: error.message
+        });
     }
-};
+}
+
+
+
+
+
+

@@ -1,12 +1,68 @@
-const Account = require('../models/account');
+const Account = require('../models/account'); // Đường dẫn tới model Account của bạn
+const Customer = require('../models/customer');
 
-exports.getAllAccounts = async (req, res) => {
+// Thêm tài khoản mới cho khách hàng
+exports.createAccount = async (req, res) => {
+    const { customerId, accountNumber, accountType, balance, currency } = req.body;
+  
     try {
-        // Lấy tất cả tài khoản từ cơ sở dữ liệu
-        const accounts = await Account.find().populate('customerId', 'fullName email'); // Populates customerId with customer information
+
+      // Kiểm tra số tài khoản đã tồn tại chưa
+      const existingAccount = await Account.findOne({ accountNumber });
+      if (existingAccount) {
+          return res.status(400).json({ message: "Số tài khoản đã tồn tại" });
+      }
+  
+      // Tạo tài khoản mới nếu khách hàng tồn tại
+      const newAccount = new Account({
+        customerId, // Liên kết với khách hàng
+        accountNumber, // Số tài khoản
+        accountType, // Loại tài khoản
+        balance, // Số dư tài khoản
+        currency, // Loại tiền
+      });
+  
+      // Lưu tài khoản mới vào cơ sở dữ liệu
+      await newAccount.save();
+  
+      // Trả về tài khoản mới tạo
+      res.status(201).json({
+        success: true,
+        message: "Tạo tài khoản thành công",
+        account: newAccount,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Lỗi khi tạo tài khoản",
+        error: error.message,
+      });
+    }
+  };
+
+// Lấy danh sách tài khoản với phân trang
+exports.getAccountsWithPagination = async (req, res) => {
+    const { current = 1, pageSize = 10 } = req.query; // Lấy số trang và số lượng từ query params
+
+    try {
+        // Chuyển đổi current và pageSize sang số nguyên
+        const currentPage = parseInt(current, 10);
+        const limit = parseInt(pageSize, 10);
+
+        // Tính số tài liệu bỏ qua
+        const skip = (currentPage - 1) * limit;
+
+        // Lấy danh sách tài khoản với phân trang
+        const accounts = await Account.find().skip(skip).limit(limit);
+
+        // Đếm tổng số tài khoản
+        const total = await Account.countDocuments();
 
         res.status(200).json({
             success: true,
+            total,            // Tổng số tài khoản
+            current: currentPage, // Trang hiện tại
+            pageSize: limit,     // Kích thước trang
             accounts,
         });
     } catch (error) {
@@ -18,136 +74,52 @@ exports.getAllAccounts = async (req, res) => {
     }
 };
 
-exports.createAccount = async (req, res) => {
-    const { customerId, accountNumber, accountType, balance, currency } = req.body;
-
-    try {
-        // Tạo mới tài khoản
-        const newAccount = new Account({
-            customerId,
-            accountNumber,
-            accountType,
-            balance,
-            currency,
-        });
-
-        // Lưu tài khoản vào cơ sở dữ liệu
-        await newAccount.save();
-
-        res.status(201).json({
-            success: true,
-            message: 'Tạo mới tài khoản thành công!',
-            account: newAccount
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Lỗi server!',
-            error: error.message
-        });
-    }
-};
-
-exports.getAccountById = async (req, res) => {
-    const { id } = req.params; // Lấy accountId từ params
-
-    try {
-        // Tìm tài khoản theo ID
-        const account = await Account.findById(id).populate('customerId', 'fullName email'); // Populates customerId with customer information
-        if (!account) {
-            return res.status(404).json({
-                success: false,
-                message: 'Tài khoản không tồn tại!',
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            account,
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Lỗi server!',
-            error: error.message,
-        });
-    }
-};
-
+// Cập nhật thông tin tài khoản
 exports.updateAccount = async (req, res) => {
-    const { id } = req.params; // Lấy accountId từ params
-    const { accountNumber, accountType, balance, currency } = req.body;
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
 
-    try {
-        // Tìm tài khoản theo ID
-        const account = await Account.findById(id);
-        if (!account) {
-            return res.status(404).json({
-                success: false,
-                message: 'Tài khoản không tồn tại!',
-            });
-        }
+    const updatedAccount = await Account.findByIdAndUpdate(id, updateData, { new: true });
 
-        // Cập nhật các trường
-        account.accountNumber = accountNumber || account.accountNumber;
-        account.accountType = accountType || account.accountType;
-        account.balance = balance !== undefined ? balance : account.balance; // Kiểm tra nếu balance có giá trị mới
-        account.currency = currency || account.currency;
-
-        // Lưu các thay đổi vào cơ sở dữ liệu
-        await account.save();
-
-        res.status(200).json({
-            success: true,
-            message: 'Cập nhật thông tin tài khoản thành công!',
-            account,
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Lỗi server!',
-            error: error.message,
-        });
+    if (!updatedAccount) {
+      return res.status(404).json({ message: "Không tìm thấy tài khoản" });
     }
+
+    res.json(updatedAccount);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi cập nhật tài khoản", error: error.message });
+  }
 };
 
+// Xóa tài khoản
 exports.deleteAccount = async (req, res) => {
-    const { id } = req.params; // Lấy accountId từ params
+  try {
+    const { id } = req.params;
 
-    try {
-        // Tìm và xóa tài khoản theo ID
-        const account = await Account.findByIdAndDelete(id);
-        if (!account) {
-            return res.status(404).json({
-                success: false,
-                message: 'Tài khoản không tồn tại!',
-            });
-        }
+    const deletedAccount = await Account.findByIdAndDelete(id);
 
-        res.status(200).json({
-            success: true,
-            message: 'Xóa tài khoản thành công!',
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Lỗi server!',
-            error: error.message,
-        });
+    if (!deletedAccount) {
+      return res.status(404).json({ message: "Không tìm thấy tài khoản" });
     }
+
+    res.json({ message: "Xóa tài khoản thành công" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi xóa tài khoản", error: error.message });
+  }
 };
 
-// API tìm kiếm tài khoản theo số tài khoản
-exports.getAccountByAccountNumber = async (req, res) => {
-    const { accountNumber } = req.params; // Lấy accountNumber từ params
+// Lấy tài khoản theo id
+exports.getAccountById = async (req, res) => {
+    const { id } = req.params; // Lấy accountId từ URL params
 
     try {
-        // Tìm tài khoản theo số tài khoản
-        const account = await Account.findOne({ accountNumber }).populate('customerId', 'fullName email'); // Populates customerId with customer information
+        const account = await Account.findById(id);
+
         if (!account) {
             return res.status(404).json({
                 success: false,
-                message: 'Tài khoản không tồn tại!',
+                message: 'Không tìm thấy tài khoản',
             });
         }
 

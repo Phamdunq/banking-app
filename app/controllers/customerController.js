@@ -34,9 +34,6 @@ exports.login = async (req, res) => {
     }
 };
 
-
-
-
 // API xử lý đăng ký
 exports.register = async (req, res) => {
     const { fullName, email, phoneNumber, dateOfBirth, password, address } = req.body;
@@ -75,33 +72,6 @@ exports.register = async (req, res) => {
     }
 };
 
-const { DangKyNguoiDung } = require('../blockchain/registerUser'); // Nhập hàm đăng ký từ blockchain
-
-// Hàm xử lý đăng ký khách hàng
-exports.registerCustomer = async (req, res) => {
-    const { fullName, email, phoneNumber, dateOfBirth, password, address } = req.body;
-
-    try {
-        // Đăng ký người dùng lên blockchain
-        const userID = email; // Sử dụng email làm ID
-        const userIdentity = await DangKyNguoiDung(userID);
-        
-        // Lưu thông tin khách hàng vào database nếu cần
-
-        res.status(200).json({
-            success: true,
-            message: 'Customer registered successfully',
-            data: userIdentity,
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Failed to register customer',
-            error: error.message,
-        });
-    }
-};
-
 // API phân trang cho khách hàng 
 exports.getCustomersWithPagination = async (req, res) => {
     const { current = 1, pageSize = 10 } = req.query; // Lấy số trang và số lượng từ query params
@@ -136,6 +106,7 @@ exports.getCustomersWithPagination = async (req, res) => {
     }
 };
 
+// tạo mới khách hàng
 exports.createCustomer = async (req, res) => {
     try {
         const { fullName, email, phoneNumber, password, address, dateOfBirth, image } = req.body;
@@ -154,7 +125,7 @@ exports.createCustomer = async (req, res) => {
             fullName,
             email,
             phoneNumber,
-            password,  // Lưu mật khẩu đã mã hóa
+            password,  
             address,
             dateOfBirth,
             image,  // Lưu đường dẫn hình ảnh (nếu có)
@@ -178,6 +149,7 @@ exports.createCustomer = async (req, res) => {
             
 };
 
+//lấy khách hàng theo id
 exports.getCustomerById = async (req, res) => {
     try {
         const customer = await Customer.findById(req.params.id);
@@ -188,6 +160,7 @@ exports.getCustomerById = async (req, res) => {
     }
 };
 
+//sửa dữ liệu khách hàng
 exports.updateCustomer = async (req, res) => {
     const { id } = req.params; // Lấy customerId từ params
     const { fullName, email, phoneNumber, password, address, dateOfBirth, image } = req.body;
@@ -228,6 +201,7 @@ exports.updateCustomer = async (req, res) => {
     }
 };
 
+//xóa khách hàng
 exports.deleteCustomer = async (req, res) => {
     const { id } = req.params; // Lấy customerId từ params
 
