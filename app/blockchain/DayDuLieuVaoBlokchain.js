@@ -1,6 +1,6 @@
 const { Wallets, Gateway } = require("fabric-network");
 const fs = require('fs');
-async function pushDataToBlockchain(idSignature, signature, ) {
+async function pushDataToBlockchain(idSignature, signature, fullName, email, phoneNumber, password, address, dateOfBirth, image ) {
     const ccpPath = '/home/dunq/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json';
     const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 

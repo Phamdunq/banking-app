@@ -1,6 +1,8 @@
 const Customer = require('../models/customer');
 const Account = require('../models/account')
 const bcrypt = require('bcryptjs');
+const { default: mongoose } = require('mongoose');
+const { registerUser } = require('../blockchain/registerUser');
 
 // API xử lý đăng nhập
 exports.login = async (req, res) => {
@@ -19,16 +21,18 @@ exports.login = async (req, res) => {
         }
 
         // Chỉ trả về thông tin người dùng
-        return res.json({ success: true, customer: {
-            fullName: customer.fullName,
-            email: customer.email,
-            phoneNumber: customer.phoneNumber,
-            address: customer.address,
-            dateOfBirth: customer.dateOfBirth,
-            image: customer.image,
-            id: customer._id,
-        }});
-        
+        return res.json({
+            success: true, customer: {
+                fullName: customer.fullName,
+                email: customer.email,
+                phoneNumber: customer.phoneNumber,
+                address: customer.address,
+                dateOfBirth: customer.dateOfBirth,
+                image: customer.image,
+                id: customer._id,
+            }
+        });
+
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Lỗi server!' });
     }
@@ -125,7 +129,7 @@ exports.createCustomer = async (req, res) => {
             fullName,
             email,
             phoneNumber,
-            password,  
+            password,
             address,
             dateOfBirth,
             image,  // Lưu đường dẫn hình ảnh (nếu có)
@@ -146,7 +150,7 @@ exports.createCustomer = async (req, res) => {
             error: error.message
         });
     }
-            
+
 };
 
 //lấy khách hàng theo id
@@ -155,7 +159,7 @@ exports.getCustomerById = async (req, res) => {
         const customer = await Customer.findById(req.params.id);
         if (!customer) return res.status(404).json({ message: 'Không tìm thấy khách hàng' });
         res.json(customer);
-    } catch (err) { 
+    } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
@@ -257,5 +261,21 @@ exports.searchCustomers = async (req, res) => {
             message: 'Lỗi server!',
             error: error.message
         });
+    }
+};
+// Tạo khóa cho người dùng (khách hàng)
+exports.createKeyForCustomer = async (req, res) => {
+    const { customerId } = req.body;
+
+    try {
+        
+        // Tạo khóa cho người dùng bằng cách sử dụng hàm đăng ký người dùng và lấy thông tin chứng chỉ
+        const generatedKey = await registerUser(customerId);
+
+        // Gửi thông tin CA kèm với khóa riêng tư cho client
+        res.status(200).json(generatedKey);
+    } catch (error) {
+        console.error(`Lỗi khi tạo khóa cho khách hàng có ID ${customerId}:`, error);
+        res.status(500).json({ message: 'Lỗi khi tạo khóa', error: error.message });
     }
 };

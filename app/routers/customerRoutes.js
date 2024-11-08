@@ -12,4 +12,6 @@ router.post('/login', customerController.login);
 router.post('/register', customerController.register);
 router.get('/search/customers', customerController.searchCustomers)
 
+//tao khoa cho nguoi dung
+router.post('/taokhoanguoidung', customerController.createKeyForCustomer)
 module.exports = router;

@@ -21,7 +21,8 @@ app.use(express.urlencoded({ extended: true })) // for form data
 // Middleware cho body-parser
 app.use(bodyParser.json());
 
-var cors = require("cors")//Khai báo thư viện cors
+var cors = require("cors");//Khai báo thư viện cors
+const { enrollAdmin } = require('./app/blockchain/enrollAdmin');
 app.use(express.json())//Để sử lý dữ liệu json
 app.use(express.urlencoded({extended: true}))//Để sử lý dữ liệu URL-encoded
 app.use(cors({credentials: true, origin: "*"}))// Chấp thuận cors từ mọi URL
@@ -39,6 +40,7 @@ app.get("/", (req, res, next) => {
   try {
       //using mongoose
       await connection();
+      //await enrollAdmin();
       app.listen(port, hostname, () => {
           console.log(`Backend zero app listening on port ${port}`)
       })

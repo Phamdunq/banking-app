@@ -29,8 +29,7 @@ async function enrollAdmin() {
         // Kiểm tra xem đã đăng ký admin hay chưa
         const adminIdentity = await wallet.get('admin');
         if (adminIdentity) {
-            console.log('Danh tính cho người dùng admin "admin" đã tồn tại trong ví');
-            return;
+            wallet.remove('admin')
         }
 
         // Đăng ký người dùng admin

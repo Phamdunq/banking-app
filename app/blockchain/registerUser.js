@@ -56,8 +56,7 @@ async function registerUser(userId) {
             mspId: 'Org1MSP', // ID của tổ chức
             type: 'X.509', // Loại chứng chỉ
         };
-        await wallet.put(userId, x509Identity); // Lưu danh tính vào ví
-        console.log(`Đã đăng ký và nhập người dùng "${userId}" vào ví thành công`);
+        return x509Identity;
 
     } catch (error) {
         console.error(`Đăng ký người dùng "${userId}" thất bại: ${error}`);
